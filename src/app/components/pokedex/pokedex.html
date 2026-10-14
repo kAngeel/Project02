@@ -1,0 +1,95 @@
+<h1>Pokédex</h1>
+
+<div class="search-container">
+  <input
+    type="text"
+    placeholder="Search Pokémon by name or ID..."
+    [ngModel]="searchTerm()"
+    (ngModelChange)="onSearchChange($event)"
+    class="search-input"
+    aria-label="Search Pokémon"
+  />
+</div>
+
+@if (loading) {
+  <p>Cargando...</p>
+}
+
+@if (error) {
+  <p class="error">{{ error }}</p>
+}
+
+@if (filteredPokemon().length === 0 && searchTerm().length > 0) {
+  <p>No se encontraron Pokémon con "{{ searchTerm() }}"</p>
+}
+
+<div class="pokemon-grid">
+  @for (pokemon of filteredPokemon(); track pokemon.id) {
+  <div class="pokemon-card">
+    <img
+      [src]="pokemon.image"
+      [alt]="pokemon.name"
+      class="pokemon-image"
+      loading="eager"
+    />
+    <h3 class="pokemon-name">{{ pokemon.name }}</h3>
+    <p class="pokemon-id">#{{ pokemon.id.toString().padStart(3, '0') }}</p>
+    <button
+      class="details-btn"
+      (click)="getPokemonDetails(pokemon.id)"
+      [disabled]="loadingDetail()"
+      aria-label="Ver detalles de {{ pokemon.name }}"
+    >
+      Ver detalles
+    </button>
+  </div>
+  }
+</div>
+
+@if (selectedPokemon(); as p) {
+  <div class="modal-overlay" (click)="closeDetails()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <button
+        class="close-btn"
+        (click)="closeDetails()"
+        aria-label="Cerrar detalles"
+      >
+        &times;
+      </button>
+      <img [src]="p.image" [alt]="p.name" class="modal-image" />
+      <h2 class="modal-name">
+        {{ p.name }}
+        <span class="modal-id">#{{ p.id.toString().padStart(3, '0') }}</span>
+      </h2>
+
+      <div class="modal-section">
+        <h3>Tipos</h3>
+        <div class="types">
+          @for (type of p.types; track type) {
+          <span class="type-badge" [attr.data-type]="type">{{ type }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Datos</h3>
+        <p>Altura: {{ p.height / 10 }} m</p>
+        <p>Peso: {{ p.weight / 10 }} kg</p>
+        <p>Habilidades: {{ p.abilities.join(', ') }}</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>Estadísticas base</h3>
+        @for (stat of p.stats; track stat.name) {
+        <div class="stat-row">
+          <span class="stat-name">{{ stat.name }}</span>
+          <div class="stat-bar-container">
+            <div class="stat-bar" [style.width.%]="(stat.base / 255) * 100"></div>
+          </div>
+          <span class="stat-value">{{ stat.base }}</span>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+}
