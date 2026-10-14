@@ -12,4 +12,9 @@ export const routes: Routes = [
     redirectTo: 'pokedex',
     pathMatch: 'full',
   },
+  {
+    // Fallback para GitHub Pages: cualquier ruta desconocida va al Pokédex
+    path: '**',
+    redirectTo: 'pokedex',
+  },
 ];

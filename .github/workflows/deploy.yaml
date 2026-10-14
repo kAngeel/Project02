@@ -1,0 +1,37 @@
+name: Deploy Angular to GitHub Pages
+
+on:
+  push:
+    branches:
+      - "master" # rama del repositorio (Project02 usa master)
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# No cancelar un despliegue que ya está en curso
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.build-publish.outputs.page_url }}
+    steps:
+      - id: build-publish
+        uses: bitovi/github-actions-angular-to-github-pages@v1.0.0
+        with:
+          # Salida del build de Angular (SSR): solo se publica el bundle del navegador
+          path: dist/${{ github.event.repository.name }}/browser
+          # Build con base-href para GitHub Pages + fallbacks para SPA:
+          # - index.csr.html -> index.html (raíz del sitio, si no daría 404)
+          # - index.html -> 404.html (enlaces profundos tipo /Project02/pokedex)
+          build_command: >-
+            npm run build -- --base-href=/${{ github.event.repository.name }}/ &&
+            cp dist/${{ github.event.repository.name }}/browser/index.csr.html dist/${{ github.event.repository.name }}/browser/index.html &&
+            cp dist/${{ github.event.repository.name }}/browser/index.html dist/${{ github.event.repository.name }}/browser/404.html
+          caching: true
